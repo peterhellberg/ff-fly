@@ -1,0 +1,12 @@
+app_id = "fly"
+app_name = "Fly!"
+author_id = "peter"
+author_name = "Peter Hellberg"
+version = 0
+
+[cheats]
+toggle-prey-lines = 1 # Toggle lines pointing towards prey
+toggle-stage-name = 2 # Toggle stage name
+
+[files]
+font = { path = "eg_6x12.fff" }
