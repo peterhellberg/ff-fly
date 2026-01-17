@@ -34,6 +34,7 @@ deploy: export
 	@scp -q *.zon ${HOSTNAME}:${SERVER_PATH}/
 	@scp -q *.toml ${HOSTNAME}:${SERVER_PATH}/
 	@scp -q *.fff ${HOSTNAME}:${SERVER_PATH}/
+	@scp -q *.gif ${HOSTNAME}:${SERVER_PATH}/
 	@scp -q *.md ${HOSTNAME}:${SERVER_PATH}/
 	@scp -q src/*.zig ${HOSTNAME}:${SERVER_PATH}/src/
 	@echo "✔ Updated ${APP_ID} on ${APP_URL}"
