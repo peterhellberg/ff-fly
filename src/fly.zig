@@ -16,7 +16,7 @@ pub const SIZE_PLAYER_MAX = 45;
 pub const SIZE_ENEMY_MAX = 45;
 pub const NUM_ENEMIES = 128;
 pub const NUM_STARS = 768;
-pub const SPACE: ff.Rect = .new(
+pub const SPACE = ff.Rect.new(
     0,
     0,
     ff.width * SIZE_SPACE,
@@ -28,18 +28,19 @@ pub var pre: ff.Pad = undefined;
 pub var cam: Camera = .{};
 pub var player: Player = .{};
 
+var state: State = .Menu;
+
 var menu: Menu = .{};
 var init: Init = .{};
 var game: Game = .{};
 var over: Over = .{};
 
-var state: State = .Menu;
-
-var btn: ff.Buttons = undefined;
 var buf: [1735]u8 = undefined;
 var fff: ff.Font = undefined;
-var frame: u32 = 0;
+
+var btn: ff.Buttons = undefined;
 var old: ff.Buttons = undefined;
+
 var pal: ff.Palette = .{
     .black = 0x131313, //      black
     .dark_gray = 0x505050, //  dark gray
@@ -53,6 +54,8 @@ var pal: ff.Palette = .{
     .red = 0xb4202a, //        TODO: better enemy fill color
     .purple = 0x73172d, //     TODO: better enemy outline color
 };
+
+var frame: u32 = 0;
 
 const State = enum {
     Menu,
@@ -97,17 +100,9 @@ const State = enum {
 };
 
 const Menu = struct {
-    pos: ff.Point = .new(10, 10),
     blink: bool = false,
 
     fn update(self: *Menu) void {
-        const dpad = pad.toDPad().held(pre.toDPad());
-
-        if (dpad.left) self.pos.x -= 1;
-        if (dpad.right) self.pos.x += 1;
-        if (dpad.up) self.pos.y -= 1;
-        if (dpad.down) self.pos.y += 1;
-
         if (@mod(frame, 12) == 0) self.blink = !self.blink;
 
         if (!btn.e and old.e) state = .Init;
@@ -176,23 +171,6 @@ const Menu = struct {
     fn quad(x1: i32, y1: i32, x2: i32, y2: i32, x3: i32, y3: i32, x4: i32, y4: i32, s: ff.Style) void {
         draw.tri(x1, y1, x2, y2, x3, y3, s);
         draw.tri(x1, y1, x3, y3, x4, y4, s);
-    }
-
-    inline fn renderMenuDebug() void {
-        const a = Circle.new(menu.pos, 10);
-        const b = Circle.new(.new(100, 60), 20);
-
-        b.draw(.{
-            .fill_color = if (a.intersect(b)) .green else .none,
-            .stroke_color = .green,
-            .stroke_width = 1,
-        });
-
-        a.draw(.{
-            .fill_color = if (a.intersect(b)) .red else .none,
-            .stroke_color = .red,
-            .stroke_width = 1,
-        });
     }
 };
 
