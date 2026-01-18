@@ -10,10 +10,10 @@ const Player = @import("fly/Player.zig");
 const Random = @import("fly/Random.zig");
 const Star = @import("fly/Star.zig");
 
-pub const SIZE_SPACE = 4;
-pub const SIZE_PLAYER = 15;
-pub const NUM_ENEMIES = 64;
-pub const NUM_STARS = 512;
+pub const SIZE_SPACE = 8;
+pub const SIZE_PLAYER = 20;
+pub const NUM_ENEMIES = 128;
+pub const NUM_STARS = 1024;
 pub const SPACE: ff.Rect = .new(
     0,
     0,
@@ -39,16 +39,17 @@ var fff: ff.Font = undefined;
 var frame: u32 = 0;
 var old: ff.Buttons = undefined;
 var pal: ff.Palette = .{
-    .black = 0x131313,
-    .gray = 0x8D8D8D,
-    .light_gray = 0xCECECE,
-    .white = 0xf2f0e5,
-    .cyan = 0xA8A8A8, // gray
+    .black = 0x131313, //      black
+    .dark_gray = 0x505050, //  dark gray
+    .gray = 0x8D8D8D, //       gray
+    .cyan = 0xA8A8A8, //       medium gray
+    .light_gray = 0xCECECE, // light gray
+    .white = 0xf2f0e5, //      white
     .light_blue = 0xA8A8A8, // gray
-    .orange = 0xf7a41d,
+    .orange = 0xf7a41d, //     orange
     .dark_green = 0xC77C03, // dark orange
-    .red = 0xb4202a,
-    .purple = 0x73172d,
+    .red = 0xb4202a, //        TODO: better enemy fill color
+    .purple = 0x73172d, //     TODO: better enemy outline color
 };
 
 const State = enum {
