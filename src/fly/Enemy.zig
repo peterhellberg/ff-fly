@@ -56,7 +56,7 @@ pub fn update(self: *Enemy) void {
     const tc = center - self.vec;
     const centerLen = @sqrt(tc[0] * tc[0] + tc[1] * tc[1]);
 
-    const maxCenterForce: f32 = 0.4;
+    const maxCenterForce: f32 = 0.2;
     const centerScale: f32 = if (centerLen > 0)
         @min(centerLen / 300.0, maxCenterForce)
     else
@@ -208,7 +208,7 @@ pub fn line(self: *const Enemy) void {
     const pp = Fly.cam.screen(Fly.player.pos);
 
     if (self.d < Fly.player.d) {
-        ff.draw.Line(pp, ep, .{ .color = .dark_gray });
+        ff.draw.Line(pp, pp.lerp(ep, 0.1), .{ .color = .orange });
     }
 }
 
