@@ -110,10 +110,6 @@ pub fn soundDied() void {
     sound.sine(.d3, .d2, 150, 0.3, 10);
 }
 
-pub fn soundAte() void {}
-pub fn soundNibbles() void {}
-pub fn soundDamaged() void {}
-
 pub fn soundInit() void {
     sound.sine(.e2, .a3, 200, 0.1, 0);
 }
@@ -285,7 +281,6 @@ const Game = struct {
 
             if (ec.intersect(pc)) {
                 if (pc.contains(ec)) {
-                    soundAte();
                     enemy.spawn(SPACE);
                 }
 
@@ -294,11 +289,9 @@ const Game = struct {
                 }
 
                 if (enemy.d < player.d) {
-                    soundNibbles();
                     player.f = @min(player.f + 0.1, SIZE_PLAYER_MAX);
                     enemy.f -= 0.2;
                 } else {
-                    soundDamaged();
                     player.f -= 0.6;
                     if (player.f < 0) state = .Over;
                 }
