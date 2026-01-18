@@ -35,7 +35,7 @@ pub fn spawn(self: *Enemy, wr: ff.Rect) void {
     }
 
     self.vec = self.pos.vec();
-    self.d = Random.mod(i32, 15) + 5;
+    self.d = Random.mod(i32, 16) + 5;
     self.f = @floatFromInt(self.d);
 }
 
@@ -46,8 +46,8 @@ pub fn update(self: *Enemy) void {
     if (l == 0) return;
 
     // --- Base speeds ---
-    const minChaseSpeed: f32 = 0.3;
-    const maxChaseSpeed: f32 = 0.6;
+    const minChaseSpeed: f32 = 0.4;
+    const maxChaseSpeed: f32 = 0.8;
     const minFleeSpeed: f32 = 0.3;
     const maxFleeSpeed: f32 = 0.6;
 
@@ -69,7 +69,7 @@ pub fn update(self: *Enemy) void {
     var dirSign: f32 = 1.0;
     var speed: f32 = 0;
 
-    const fleeRadius: f32 = 120.0;
+    const fleeRadius: f32 = 160.0;
 
     if (self.d > Fly.player.d) {
         dirSign = 1.0;
