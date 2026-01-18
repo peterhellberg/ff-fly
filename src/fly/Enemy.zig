@@ -18,18 +18,19 @@ const SPEED: f32 = 0.5;
 const PRED: ff.Style = .{
     .fill_color = .red,
     .stroke_color = .purple,
-    .stroke_width = 2,
+    .stroke_width = 3,
 };
 
 const PREY: ff.Style = .{
-    .fill_color = .white,
-    .stroke_color = .light_gray,
+    .fill_color = .light_green,
+    .stroke_color = .green,
+    .stroke_width = 1,
 };
 
 pub fn spawn(self: *Enemy, wr: ff.Rect) void {
     self.pos = Random.pos(wr);
 
-    while (dist(self.pos, Fly.player.pos) < 100) {
+    while (Fly.cam.sees(self.pos)) {
         self.pos = Random.pos(wr);
     }
 
@@ -39,29 +40,157 @@ pub fn spawn(self: *Enemy, wr: ff.Rect) void {
 }
 
 pub fn update(self: *Enemy) void {
-    const d = Fly.player.pos.vec() - self.vec;
+    const d = Fly.player.vec - self.vec;
     const l = @sqrt(d[0] * d[0] + d[1] * d[1]);
 
     if (l == 0) return;
 
-    const ds: f32 = if (Fly.player.d >= self.d) 0.4 else 0.8;
-    const mv = d * @as(ff.Vec, @splat(ds * @as(f32, SPEED) / l));
+    // --- Base speeds ---
+    const minChaseSpeed: f32 = 0.3;
+    const maxChaseSpeed: f32 = 0.6;
+    const minFleeSpeed: f32 = 0.3;
+    const maxFleeSpeed: f32 = 0.6;
 
-    self.vec += mv;
+    // --- Map center ---
+    const center = Fly.SPACE.min().vec() + Fly.SPACE.size.vec() * @as(ff.Vec, .{ 0.5, 0.5 });
+    const tc = center - self.vec;
+    const centerLen = @sqrt(tc[0] * tc[0] + tc[1] * tc[1]);
 
-    self.pos = ff.Point.new(
-        @as(i32, @intFromFloat(@round(self.vec[0]))),
-        @as(i32, @intFromFloat(@round(self.vec[1]))),
-    );
+    const maxCenterForce: f32 = 0.4;
+    const centerScale: f32 = if (centerLen > 0)
+        @min(centerLen / 300.0, maxCenterForce)
+    else
+        0.0;
 
-    self.f -= 0.01;
-    if (self.f <= 0) self.spawn(Fly.SPACE);
+    var centerVec: ff.Vec = .{ 0, 0 };
+    if (centerLen != 0) centerVec = tc * @as(ff.Vec, @splat(centerScale / centerLen));
+
+    // --- Decide speed / direction based on player size ---
+    var dirSign: f32 = 1.0;
+    var speed: f32 = 0;
+
+    const fleeRadius: f32 = 120.0;
+
+    if (self.d > Fly.player.d) {
+        dirSign = 1.0;
+        const sizeDiff: f32 = @floatFromInt(self.d - Fly.player.d);
+        const clampedDiff = @min(sizeDiff, 30.0);
+
+        speed = minChaseSpeed + (clampedDiff / 30.0) * (maxChaseSpeed - minChaseSpeed);
+    } else {
+        if (l < fleeRadius) {
+            dirSign = -1.0;
+            const sizeDiff: f32 = @floatFromInt(Fly.player.d - self.d);
+            const clampedDiff = @min(sizeDiff, 30.0);
+
+            speed = minFleeSpeed + (clampedDiff / 30.0) * (maxFleeSpeed - minFleeSpeed);
+        } else {
+            dirSign = 0.0;
+            speed = 0.0;
+        }
+    }
+
+    // --- Combine forces: player + gentle center ---
+    const playerVec = d * @as(ff.Vec, @splat(dirSign * speed / l));
+    self.dir = playerVec + centerVec;
+
+    // --- Bounce off world edges ---
+    self.bounce();
+
+    // --- Apply movement ---
+    self.vec += self.dir;
+    self.pos = ff.Point.from_vec(self.vec);
+
+    // --- Respawn / size logic ---
+    if (self.f < 0 or self.d < 1) self.spawn(Fly.SPACE);
+    self.d = @intFromFloat(self.f);
+}
+
+pub fn updateX(self: *Enemy) void {
+    const d = Fly.player.vec - self.vec;
+    const l = @sqrt(d[0] * d[0] + d[1] * d[1]);
+
+    if (l == 0) return;
+
+    // --- Base speeds ---
+    const minChaseSpeed: f32 = 0.3;
+    const maxChaseSpeed: f32 = 0.6;
+    const minFleeSpeed: f32 = 0.3;
+    const maxFleeSpeed: f32 = 0.6;
+
+    // --- Map center ---
+    const center = Fly.SPACE.min().vec() + Fly.SPACE.size.vec() * @as(ff.Vec, .{ 0.5, 0.5 });
+    const tc = center - self.vec;
+    const centerLen = @sqrt(tc[0] * tc[0] + tc[1] * tc[1]);
+
+    // Scale center force based on distance
+    const maxCenterForce: f32 = 0.4;
+    const centerScale: f32 = if (centerLen > 0)
+        @min(centerLen / 300.0, maxCenterForce)
+    else
+        0.0;
+
+    var centerVec: ff.Vec = .{ 0, 0 };
+    if (centerLen != 0) centerVec = tc * @as(ff.Vec, @splat(centerScale / centerLen));
+
+    // --- Decide speed / direction based on player size ---
+    var dirSign: f32 = 1.0;
+    var speed: f32 = 0;
+
+    if (self.d > Fly.player.d) {
+        dirSign = 1.0;
+
+        const sizeDiff: f32 = @floatFromInt(self.d - Fly.player.d);
+        const clampedDiff = @min(sizeDiff, 30.0);
+
+        speed = minChaseSpeed + (clampedDiff / 30.0) * (maxChaseSpeed - minChaseSpeed);
+    } else {
+        dirSign = -1.0;
+
+        const sizeDiff: f32 = @floatFromInt(Fly.player.d - self.d);
+        const clampedDiff = @min(sizeDiff, 30.0);
+
+        speed = minFleeSpeed + (clampedDiff / 30.0) * (maxFleeSpeed - minFleeSpeed);
+    }
+
+    // --- Combine forces: player + gentle center ---
+    const playerVec = d * @as(ff.Vec, @splat(dirSign * speed / l));
+    self.dir = playerVec + centerVec;
+
+    // --- Bounce off world edges ---
+    self.bounce();
+
+    // --- Apply movement ---
+    self.vec += self.dir;
+    self.pos = ff.Point.from_vec(self.vec);
+
+    // --- Respawn / size logic ---
+    if (self.f < 0 or self.d < 1) self.spawn(Fly.SPACE);
 
     self.d = @intFromFloat(self.f);
+}
 
-    if (!Fly.SPACE.contains(self.pos)) self.spawn(Fly.SPACE);
+pub fn bounce(self: *Enemy) void {
+    var nx = self.vec[0] + self.dir[0];
+    var ny = self.vec[1] + self.dir[1];
 
-    self.dir = mv;
+    if (nx < Fly.SPACE.point.x) {
+        self.dir[0] = -self.dir[0];
+        nx = Fly.SPACE.point.x;
+    } else if (nx > Fly.SPACE.point.x + Fly.SPACE.size.width) {
+        self.dir[0] = -self.dir[0];
+        nx = Fly.SPACE.point.x + Fly.SPACE.size.width;
+    }
+
+    if (ny < Fly.SPACE.point.y) {
+        self.dir[1] = -self.dir[1];
+        ny = Fly.SPACE.point.y;
+    } else if (ny > Fly.SPACE.point.y + Fly.SPACE.size.height) {
+        self.dir[1] = -self.dir[1];
+        ny = Fly.SPACE.point.y + Fly.SPACE.size.height;
+    }
+
+    self.vec = .{ nx, ny };
 }
 
 pub fn circle(self: *const Enemy) Circle {
