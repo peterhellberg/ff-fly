@@ -10,7 +10,7 @@ pos: ff.Point = rectCenter(Fly.SPACE),
 dir: ff.Point = .{},
 
 vec: ff.Vec = rectCenter(Fly.SPACE).vec(),
-vel: ff.Vec = .{ 0.01, -0.01 },
+vel: ff.Vec = .{ 0.01, 0.01 },
 
 d: i32 = Fly.SIZE_PLAYER,
 f: f32 = @floatFromInt(Fly.SIZE_PLAYER),
@@ -92,12 +92,19 @@ pub fn render(p: *Player) void {
     const sp = Fly.cam.screen(p.pos);
 
     Circle.new(
-        sp.add(ff.Point.from_vec(p.vel).mul(.new(-6, -6))),
+        sp.add(ff.Point.from_vec(p.vel).mul(.new(-@divTrunc(p.d, 2), -@divTrunc(p.d, 2)))),
+        @intFromFloat(p.r * 0.004),
+    ).draw(.{
+        .fill_color = .yellow,
+    });
+
+    Circle.new(
+        sp.add(ff.Point.from_vec(p.vel).mul(.new(-@divTrunc(p.d, 4), -@divTrunc(p.d, 4)))),
         @intFromFloat(p.r * 0.01),
     ).draw(.{
         .fill_color = .white,
-        .stroke_color = .orange,
-        .stroke_width = 2,
+        .stroke_color = .yellow,
+        .stroke_width = 1,
     });
 
     Circle.new(sp, p.d).draw(.{
@@ -108,16 +115,18 @@ pub fn render(p: *Player) void {
 
     // Draw eyes only if moving
     const vel_len = @sqrt(p.vel[0] * p.vel[0] + p.vel[1] * p.vel[1]);
+
     if (vel_len != 0) {
         const dir: ff.Vec = p.vel * @as(ff.Vec, @splat(1.0 / vel_len));
         const perp: ff.Vec = .{ -dir[1], dir[0] };
+        const half: ff.Vec = .{ 0.5, 0.5 };
 
-        const eye_offset_forward: f32 = @as(f32, @floatFromInt(p.d)) * 0.25;
-        const eye_offset_side: f32 = @as(f32, @floatFromInt(p.d)) * 0.2;
+        const eye_offset_forward = @as(f32, @floatFromInt(p.d)) * 0.25;
+        const eye_offset_side = @as(f32, @floatFromInt(p.d)) * 0.2;
         const eye_size: i32 = @intFromFloat(@as(f32, @floatFromInt(p.d)) * 0.45);
 
-        const forward: ff.Vec = dir * @as(ff.Vec, @splat(eye_offset_forward));
-        const side: ff.Vec = perp * @as(ff.Vec, @splat(eye_offset_side));
+        const forward = dir * @as(ff.Vec, @splat(eye_offset_forward));
+        const side = perp * @as(ff.Vec, @splat(eye_offset_side));
 
         const right_eye_pos = sp.add(ff.Point.from_vec(forward + side));
         const left_eye_pos = sp.add(ff.Point.from_vec(forward - side));
@@ -128,9 +137,9 @@ pub fn render(p: *Player) void {
             .stroke_width = 1,
         });
 
-        const half: ff.Vec = .{ 0.5, 0.5 };
-
-        Circle.new(right_eye_pos.add(ff.Point.from_vec((forward * half) + side * half)), @divTrunc(eye_size, 3)).draw(.{
+        Circle.new(right_eye_pos.add(
+            ff.Point.from_vec((forward * half) + side * half),
+        ), @divTrunc(eye_size, 2)).draw(.{
             .fill_color = .black,
         });
 
@@ -140,7 +149,9 @@ pub fn render(p: *Player) void {
             .stroke_width = 1,
         });
 
-        Circle.new(left_eye_pos.add(ff.Point.from_vec((forward * half) - side * half)), @divTrunc(eye_size, 3)).draw(.{
+        Circle.new(left_eye_pos.add(
+            ff.Point.from_vec((forward * half) - side * half),
+        ), @divTrunc(eye_size, 2)).draw(.{
             .fill_color = .black,
         });
     }
