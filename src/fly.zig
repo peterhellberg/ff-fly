@@ -107,19 +107,15 @@ const State = enum {
 };
 
 pub fn soundDied() void {
-    sound.sine(.d3, .d2, 150, 0.5, 0);
+    sound.sine(.d3, .d2, 150, 0.3, 10);
 }
 
 pub fn soundAte() void {}
-
 pub fn soundNibbles() void {}
-
 pub fn soundDamaged() void {}
 
 pub fn soundInit() void {
-    sound.sine(.c5, .e5, 40, 0.25, 15);
-    sound.sine(.e5, .g5, 50, 0.2, 10);
-    sound.sine(.g5, .b5, 60, 0.2, 0);
+    sound.sine(.e2, .a3, 200, 0.1, 0);
 }
 
 const Menu = struct {
