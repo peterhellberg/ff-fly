@@ -2,12 +2,14 @@ const ff = @import("ff");
 
 const Sound = @This();
 
-gains: [4]ff.audio.Gain = undefined,
-sines: [4]ff.audio.Sine = undefined,
+gains: [2]ff.audio.Gain = undefined,
+sines: [2]ff.audio.Sine = undefined,
+
+queue: [2]Sine = undefined,
+queue_len: usize = 0,
+
 index: usize = 0,
 
-queue: [4]Sine = undefined,
-queue_len: usize = 0,
 elapsed_ms: u32 = 0,
 
 pub fn init() Sound {
@@ -54,20 +56,41 @@ pub fn tick(self: *Sound, delta_ms: u32) void {
     while (i < self.queue_len) : (i += 1) {
         var sound = self.queue[i];
 
-        if (!sound.started and self.elapsed_ms >= sound.start_ms) {
+        const local_ms: i32 = @as(i32, @intCast(self.elapsed_ms)) -
+            @as(i32, @intCast(sound.start_ms));
+
+        if (local_ms >= @as(i32, @intCast(sound.duration_ms))) {
+            self.queue_len -= 1;
+            if (i != self.queue_len) self.queue[i] = self.queue[self.queue_len];
+            i -= 1;
+            continue;
+        }
+
+        if (!sound.started and local_ms >= 0) {
             const s = &self.sines[self.index];
             const g = &self.gains[self.index];
 
             self.index = (self.index + 1) % self.sines.len;
 
-            const main_duration_ms: u32 = sound.duration_ms;
-
             s.modulate(.{
                 .linear = .{
                     .start = sound.start_freq.h,
                     .end = sound.end_freq.h,
-                    .start_at = .zero,
-                    .end_at = .ms(main_duration_ms),
+                    .start_at = .ms(0),
+                    .end_at = .ms(sound.duration_ms),
+                },
+            });
+
+            const fade_in_frac: f32 = 0.2;
+            const fade_in_ms: u32 = @as(u32, @intFromFloat(@as(f32, @floatFromInt(sound.duration_ms)) * fade_in_frac));
+            const fade_out_start_ms: u32 = fade_in_ms;
+
+            g.modulate(.{
+                .linear = .{
+                    .start = 0.0,
+                    .end = sound.amplitude,
+                    .start_at = .ms(0),
+                    .end_at = .ms(fade_in_ms),
                 },
             });
 
@@ -75,18 +98,13 @@ pub fn tick(self: *Sound, delta_ms: u32) void {
                 .linear = .{
                     .start = sound.amplitude,
                     .end = 0.0,
-                    .start_at = .zero,
+                    .start_at = .ms(fade_out_start_ms),
                     .end_at = .ms(sound.duration_ms),
                 },
             });
 
             sound.started = true;
-
             self.queue[i] = sound;
-        } else if (sound.started and self.elapsed_ms >= sound.start_ms + sound.duration_ms) {
-            self.queue_len -= 1;
-            if (i != self.queue_len) self.queue[i] = self.queue[self.queue_len];
-            i -= 1;
         }
     }
 }
