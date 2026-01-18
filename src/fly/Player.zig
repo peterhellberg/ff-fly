@@ -25,7 +25,7 @@ pub fn update(p: *Player) void {
     if (pd.strength > activeThreshold) {
         // Only update velocity when joystick is pushed
         p.vel = pd.dir * @as(ff.Vec, @splat(spd * pd.strength));
-        p.f *= 0.9995;
+        p.f *= 0.9999;
     } else {
         // Apply friction to continue moving gradually
         const friction: f32 = 0.9985;
@@ -88,6 +88,16 @@ inline fn bounce(p: *Player) void {
     p.pos = ff.Point.from_vec(p.vec);
 }
 
+const eye_white_style: ff.Style = .{
+    .fill_color = .white,
+    .stroke_color = .white,
+    .stroke_width = 1,
+};
+
+const eye_pupil_style: ff.Style = .{
+    .fill_color = .black,
+};
+
 pub fn render(p: *Player) void {
     const sp = Fly.cam.screen(p.pos);
 
@@ -123,37 +133,30 @@ pub fn render(p: *Player) void {
 
         const eye_offset_forward = @as(f32, @floatFromInt(p.d)) * 0.25;
         const eye_offset_side = @as(f32, @floatFromInt(p.d)) * 0.2;
-        const eye_size: i32 = @intFromFloat(@as(f32, @floatFromInt(p.d)) * 0.45);
-
         const forward = dir * @as(ff.Vec, @splat(eye_offset_forward));
         const side = perp * @as(ff.Vec, @splat(eye_offset_side));
+        const eye_size: i32 = @intFromFloat(@as(f32, @floatFromInt(p.d)) * 0.45);
+        const pup_size = @divTrunc(eye_size, 2);
 
-        const right_eye_pos = sp.add(ff.Point.from_vec(forward + side));
-        const left_eye_pos = sp.add(ff.Point.from_vec(forward - side));
+        { // Right eye
+            const right_eye_pos = sp.add(ff.Point.from_vec(forward + side));
+            const right_pup_pos = right_eye_pos.add(
+                ff.Point.from_vec((forward * half) + side * half),
+            );
 
-        Circle.new(right_eye_pos, eye_size).draw(.{
-            .fill_color = .white,
-            .stroke_color = .white,
-            .stroke_width = 1,
-        });
+            Circle.new(right_eye_pos, eye_size).draw(eye_white_style);
+            Circle.new(right_pup_pos, pup_size).draw(eye_pupil_style);
+        }
 
-        Circle.new(right_eye_pos.add(
-            ff.Point.from_vec((forward * half) + side * half),
-        ), @divTrunc(eye_size, 2)).draw(.{
-            .fill_color = .black,
-        });
+        { // Left eye
+            const left_eye_pos = sp.add(ff.Point.from_vec(forward - side));
+            const left_pup_pos = left_eye_pos.add(
+                ff.Point.from_vec((forward * half) - side * half),
+            );
 
-        Circle.new(left_eye_pos, eye_size).draw(.{
-            .fill_color = .white,
-            .stroke_color = .white,
-            .stroke_width = 1,
-        });
-
-        Circle.new(left_eye_pos.add(
-            ff.Point.from_vec((forward * half) - side * half),
-        ), @divTrunc(eye_size, 2)).draw(.{
-            .fill_color = .black,
-        });
+            Circle.new(left_eye_pos, eye_size).draw(eye_white_style);
+            Circle.new(left_pup_pos, pup_size).draw(eye_pupil_style);
+        }
     }
 }
 
