@@ -11,12 +11,12 @@ const Sound = @import("fly/Sound.zig");
 const Random = @import("fly/Random.zig");
 const Star = @import("fly/Star.zig");
 
-pub const SIZE_SPACE = 5;
+pub const SIZE_SPACE = 3;
 pub const SIZE_PLAYER = 21;
 pub const SIZE_PLAYER_MAX = 45;
 pub const SIZE_ENEMY_MAX = 45;
-pub const NUM_ENEMIES = 128;
-pub const NUM_STARS = 768;
+pub const NUM_ENEMIES = 32;
+pub const NUM_STARS = 128;
 pub const SPACE = ff.Rect.new(
     0,
     0,
