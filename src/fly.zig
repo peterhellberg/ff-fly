@@ -7,11 +7,12 @@ const Cheats = @import("fly/Cheats.zig");
 const Circle = @import("fly/Circle.zig");
 const Enemy = @import("fly/Enemy.zig");
 const Player = @import("fly/Player.zig");
+const Sound = @import("fly/Sound.zig");
 const Random = @import("fly/Random.zig");
 const Star = @import("fly/Star.zig");
 
-pub const SIZE_SPACE = 6;
-pub const SIZE_PLAYER = 20;
+pub const SIZE_SPACE = 5;
+pub const SIZE_PLAYER = 21;
 pub const SIZE_PLAYER_MAX = 45;
 pub const SIZE_ENEMY_MAX = 45;
 pub const NUM_ENEMIES = 128;
@@ -33,6 +34,7 @@ var state: State = .Menu;
 var menu: Menu = .{};
 var init: Init = .{};
 var game: Game = .{};
+var died: Died = .{};
 var over: Over = .{};
 
 var buf: [1735]u8 = undefined;
@@ -61,6 +63,7 @@ const State = enum {
     Menu,
     Init,
     Game,
+    Died,
     Over,
 
     fn update(s: State) void {
@@ -79,8 +82,11 @@ const State = enum {
             .Menu => menu.update(),
             .Init => init.update(),
             .Game => game.update(),
+            .Died => died.update(),
             .Over => over.update(),
         }
+
+        sound.tick(16);
     }
 
     fn render(s: State) void {
@@ -94,10 +100,27 @@ const State = enum {
             .Menu => menu.render(),
             .Init => init.render(),
             .Game => game.render(),
+            .Died => died.render(),
             .Over => over.render(),
         }
     }
 };
+
+pub fn soundDied() void {
+    sound.sine(.d3, .d2, 150, 0.5, 0);
+}
+
+pub fn soundAte() void {}
+
+pub fn soundNibbles() void {}
+
+pub fn soundDamaged() void {}
+
+pub fn soundInit() void {
+    sound.sine(.c5, .e5, 40, 0.25, 15);
+    sound.sine(.e5, .g5, 50, 0.2, 10);
+    sound.sine(.g5, .b5, 60, 0.2, 0);
+}
 
 const Menu = struct {
     blink: bool = false,
@@ -105,8 +128,11 @@ const Menu = struct {
     fn update(self: *Menu) void {
         if (@mod(frame, 12) == 0) self.blink = !self.blink;
 
-        if (!btn.e and old.e) state = .Init;
-        if (!btn.s and old.s) state = .Over;
+        if (!btn.e and old.e) {
+            state = .Init;
+        }
+
+        if (!btn.s and old.s) state = .Died;
     }
 
     fn render(_: *Menu) void {
@@ -184,6 +210,7 @@ const Init = struct {
             e.spawn(SPACE);
         }
 
+        soundInit();
         state = .Game;
     }
 
@@ -203,9 +230,9 @@ const Game = struct {
 
         collisions();
 
-        if (player.d < 3) state = .Over;
+        if (player.d < 3) state = .Died;
         if (!btn.n and old.n) state = .Menu;
-        if (!btn.s and old.s) state = .Over;
+        if (!btn.s and old.s) state = .Died;
     }
 
     inline fn collisions() void {
@@ -254,7 +281,7 @@ const Game = struct {
         return v[0] * v[0] + v[1] * v[1];
     }
 
-    fn playerCollision() void {
+    inline fn playerCollision() void {
         const pc = player.circle();
 
         for (&enemies) |*enemy| {
@@ -262,17 +289,20 @@ const Game = struct {
 
             if (ec.intersect(pc)) {
                 if (pc.contains(ec)) {
+                    soundAte();
                     enemy.spawn(SPACE);
                 }
 
                 if (ec.contains(pc)) {
-                    state = .Over;
+                    state = .Died;
                 }
 
                 if (enemy.d < player.d) {
+                    soundNibbles();
                     player.f = @min(player.f + 0.1, SIZE_PLAYER_MAX);
                     enemy.f -= 0.2;
                 } else {
+                    soundDamaged();
                     player.f -= 0.6;
                     if (player.f < 0) state = .Over;
                 }
@@ -298,6 +328,16 @@ const Game = struct {
 
         player.render();
     }
+};
+
+const Died = struct {
+    fn update(_: *Died) void {
+        soundDied();
+
+        state = .Over;
+    }
+
+    fn render(_: *Died) void {}
 };
 
 const Over = struct {
@@ -376,10 +416,14 @@ pub export fn cheat(cmd: i32, val: i32) i32 {
     return cheats.apply(cmd, val);
 }
 
+var sound: Sound = undefined;
+
 pub export fn boot() void {
     pal.set();
 
     fff = ff.loadFile("font", buf[0..]);
+
+    sound = Sound.init();
 
     for (&stars) |*s| {
         s.pos = Random.pos(SPACE);
