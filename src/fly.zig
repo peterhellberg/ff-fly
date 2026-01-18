@@ -12,7 +12,7 @@ const Star = @import("fly/Star.zig");
 
 pub const SIZE_SPACE = 6;
 pub const SIZE_PLAYER = 20;
-pub const SIZE_PLAYER_MAX = 50;
+pub const SIZE_PLAYER_MAX = 45;
 pub const SIZE_ENEMY_MAX = 45;
 pub const NUM_ENEMIES = 128;
 pub const NUM_STARS = 768;
