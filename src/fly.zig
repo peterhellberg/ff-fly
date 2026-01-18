@@ -10,8 +10,9 @@ const Player = @import("fly/Player.zig");
 const Random = @import("fly/Random.zig");
 const Star = @import("fly/Star.zig");
 
-pub const SIZE_SPACE = 4;
+pub const SIZE_SPACE = 6;
 pub const SIZE_PLAYER = 20;
+pub const SIZE_PLAYER_MAX = 50;
 pub const SIZE_ENEMY_MAX = 45;
 pub const NUM_ENEMIES = 128;
 pub const NUM_STARS = 768;
@@ -32,7 +33,7 @@ var init: Init = .{};
 var game: Game = .{};
 var over: Over = .{};
 
-var state: State = .Over;
+var state: State = .Menu;
 
 var btn: ff.Buttons = undefined;
 var buf: [1735]u8 = undefined;
@@ -325,6 +326,35 @@ const Game = struct {
     }
 
     fn playerCollision() void {
+        const pc = player.circle();
+
+        for (&enemies) |*enemy| {
+            const ec = enemy.circle();
+
+            if (ec.intersect(pc)) {
+                if (pc.contains(ec)) {
+                    enemy.spawn(SPACE);
+                }
+
+                if (ec.contains(pc)) {
+                    state = .Over;
+                }
+
+                if (enemy.d < player.d) {
+                    player.f = @min(player.f + 0.1, SIZE_PLAYER_MAX);
+                    enemy.f -= 0.2;
+                } else {
+                    player.f -= 0.6;
+                    if (player.f < 0) state = .Over;
+                }
+
+                player.d = @intFromFloat(player.f);
+                enemy.d = @intFromFloat(enemy.f);
+            }
+        }
+    }
+
+    fn playerCollisionX() void {
         const pc = player.circle();
 
         for (&enemies) |*enemy| {
