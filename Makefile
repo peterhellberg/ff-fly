@@ -6,7 +6,7 @@ APP_PATH=ff/${APP_ID}
 APP_URL=https://${HOSTNAME}/${APP_PATH}
 SERVER_ROOT=/var/www/play.c7.se
 SERVER_PATH=${SERVER_ROOT}/${APP_PATH}
-SHOTS_DIR=~/.local/share/firefly/data/${AUTHOR_ID}/${APP_ID}/shots
+SHOTS_DIR=shots
 
 .PHONY: all
 all: spy
@@ -26,6 +26,7 @@ build:
 .PHONY: export
 export: build
 	@firefly_cli export
+	@firefly_cli shots download -o ${SHOTS_DIR} ${AUTHOR_ID}.${APP_ID}
 
 .PHONY: deploy
 deploy: export
