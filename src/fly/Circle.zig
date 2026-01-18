@@ -20,6 +20,17 @@ pub fn intersect(c1: Circle, c2: Circle) bool {
     return circlesIntersect(c1.pos, c1.d, c2.pos, c2.d);
 }
 
+pub fn contains(self: Circle, other: Circle) bool {
+    const dx: f32 = @floatFromInt(other.pos.x - self.pos.x);
+    const dy: f32 = @floatFromInt(other.pos.y - self.pos.y);
+    const dist: f32 = @sqrt(dx * dx + dy * dy);
+
+    const radiusSelf: f32 = @floatFromInt(@divTrunc(self.d, 2));
+    const radiusOther: f32 = @floatFromInt(@divTrunc(other.d, 2));
+
+    return dist + radiusOther <= radiusSelf;
+}
+
 pub fn drawCentered(p: ff.Point, d: i32, s: ff.Style) void {
     ff.drawCircle(.new(
         p.x - @divTrunc(d, 2),
