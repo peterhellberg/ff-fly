@@ -10,7 +10,7 @@ pos: ff.Point = rectCenter(Fly.SPACE),
 dir: ff.Point = .{},
 
 vec: ff.Vec = rectCenter(Fly.SPACE).vec(),
-vel: ff.Vec = .{ 0, 0 },
+vel: ff.Vec = .{ 0.01, -0.01 },
 
 d: i32 = Fly.SIZE_PLAYER,
 f: f32 = @floatFromInt(Fly.SIZE_PLAYER),
@@ -68,7 +68,11 @@ pub inline fn padDir(pad: ff.Pad) PadDir {
     dir *= @as(ff.Vec, @splat(1.0 / len));
 
     const strength = @min(len / 1000.0, 1.0);
-    return .{ .dir = dir, .strength = strength };
+
+    return .{
+        .dir = dir,
+        .strength = strength,
+    };
 }
 
 inline fn bounce(p: *Player) void {
@@ -89,10 +93,11 @@ pub fn render(p: *Player) void {
 
     Circle.new(
         sp.add(ff.Point.from_vec(p.vel).mul(.new(-6, -6))),
-        @intFromFloat(p.r * 0.03),
+        @intFromFloat(p.r * 0.01),
     ).draw(.{
-        .stroke_color = .green,
-        .stroke_width = 1,
+        .fill_color = .white,
+        .stroke_color = .orange,
+        .stroke_width = 2,
     });
 
     Circle.new(sp, p.d).draw(.{
@@ -100,6 +105,45 @@ pub fn render(p: *Player) void {
         .stroke_color = .orange,
         .stroke_width = 1,
     });
+
+    // Draw eyes only if moving
+    const vel_len = @sqrt(p.vel[0] * p.vel[0] + p.vel[1] * p.vel[1]);
+    if (vel_len != 0) {
+        const dir: ff.Vec = p.vel * @as(ff.Vec, @splat(1.0 / vel_len));
+        const perp: ff.Vec = .{ -dir[1], dir[0] };
+
+        const eye_offset_forward: f32 = @as(f32, @floatFromInt(p.d)) * 0.25;
+        const eye_offset_side: f32 = @as(f32, @floatFromInt(p.d)) * 0.2;
+        const eye_size: i32 = @intFromFloat(@as(f32, @floatFromInt(p.d)) * 0.45);
+
+        const forward: ff.Vec = dir * @as(ff.Vec, @splat(eye_offset_forward));
+        const side: ff.Vec = perp * @as(ff.Vec, @splat(eye_offset_side));
+
+        const right_eye_pos = sp.add(ff.Point.from_vec(forward + side));
+        const left_eye_pos = sp.add(ff.Point.from_vec(forward - side));
+
+        Circle.new(right_eye_pos, eye_size).draw(.{
+            .fill_color = .white,
+            .stroke_color = .white,
+            .stroke_width = 1,
+        });
+
+        const half: ff.Vec = .{ 0.5, 0.5 };
+
+        Circle.new(right_eye_pos.add(ff.Point.from_vec((forward * half) + side * half)), @divTrunc(eye_size, 3)).draw(.{
+            .fill_color = .black,
+        });
+
+        Circle.new(left_eye_pos, eye_size).draw(.{
+            .fill_color = .white,
+            .stroke_color = .white,
+            .stroke_width = 1,
+        });
+
+        Circle.new(left_eye_pos.add(ff.Point.from_vec((forward * half) - side * half)), @divTrunc(eye_size, 3)).draw(.{
+            .fill_color = .black,
+        });
+    }
 }
 
 pub fn circle(self: *const Player) Circle {
