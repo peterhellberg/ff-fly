@@ -133,28 +133,22 @@ pub fn circle(self: *const Enemy) Circle {
     return .new(self.pos, self.d);
 }
 
-fn rect(self: *const Enemy) ff.Rect {
-    return self.pos
-        .sub(.new(self.d, self.d))
-        .rect(.new(self.d, self.d));
-}
-
 pub fn line(self: *const Enemy) void {
     const ep = Fly.cam.screen(self.pos);
     const pp = Fly.cam.screen(Fly.player.pos);
 
     if (self.d < Fly.player.d) {
-        ff.draw.Line(pp, pp.lerp(ep, 0.1), .{ .color = .orange });
+        ff.draw.Line(pp, pp.lerp(ep, 0.1), .{
+            .color = .orange,
+        });
     }
 }
 
 pub fn render(self: *const Enemy) void {
-    const er = self.rect();
     const ep = Fly.cam.screen(self.pos);
-
     const s = if (self.d > Fly.player.d) PRED else PREY;
 
-    if (Fly.cam.intersects(er)) {
+    if (dist(self.pos, Fly.player.pos) < ff.width) {
         Circle.drawCentered(ep, self.d, s);
 
         ff.draw.Point(ep, s.stroke_color);
