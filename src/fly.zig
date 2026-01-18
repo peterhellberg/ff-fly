@@ -213,7 +213,7 @@ const Game = struct {
         playerCollision();
     }
 
-    fn enemyCollisions() void {
+    inline fn enemyCollisions() void {
         for (&enemies, 0..) |*a, i| {
             for (enemies[i + 1 ..]) |*b| {
                 const delta = b.vec - a.vec;
@@ -233,11 +233,9 @@ const Game = struct {
                 a.vec -= correction;
                 b.vec += correction;
 
-                // Update integer positions for rendering
                 a.pos = ff.Point.from_vec(a.vec);
                 b.pos = ff.Point.from_vec(b.vec);
 
-                // Growth/shrink logic: bigger enemy grows, smaller shrinks
                 if (a.d >= b.d) {
                     if (a.d < SIZE_ENEMY_MAX) a.f += 0.05; // only grow if below max
                     b.f -= 0.05;
@@ -248,53 +246,6 @@ const Game = struct {
 
                 a.d = @intFromFloat(a.f);
                 b.d = @intFromFloat(b.f);
-            }
-        }
-    }
-
-    fn enemyCollisionsX() void {
-        for (&enemies, 0..) |*a, i| {
-            for (enemies[i + 1 ..]) |*b| {
-                const delta = b.vec - a.vec;
-                const dist_sq = vecLenSq(delta);
-
-                const min_dist: f32 = @as(f32, @floatFromInt(a.d + b.d)) * 0.5;
-                const min_dist_sq = min_dist * min_dist;
-
-                if (dist_sq == 0 or dist_sq >= min_dist_sq)
-                    continue;
-
-                const distance = @sqrt(dist_sq);
-                const separation = (min_dist - distance) * 0.5;
-                const direction = delta * @as(ff.Vec, @splat(1.0 / distance));
-                const correction = direction * @as(ff.Vec, @splat(separation));
-
-                // Push enemies apart
-                a.vec -= correction;
-                b.vec += correction;
-
-                // Update integer positions for rendering
-                a.pos = ff.Point.new(
-                    @as(i32, @intFromFloat(@round(a.vec[0]))),
-                    @as(i32, @intFromFloat(@round(a.vec[1]))),
-                );
-                b.pos = ff.Point.new(
-                    @as(i32, @intFromFloat(@round(b.vec[0]))),
-                    @as(i32, @intFromFloat(@round(b.vec[1]))),
-                );
-
-                // --- Grow/shrink logic ---
-                if (a.d > b.d) {
-                    a.f += 0.05; // bigger grows
-                    b.f -= 0.05; // smaller shrinks
-                } else if (b.d > a.d) {
-                    b.f += 0.05;
-                    a.f -= 0.05;
-                }
-
-                // Clamp sizes so nothing goes negative
-                a.d = @intFromFloat(@max(a.f, 1.0));
-                b.d = @intFromFloat(@max(b.f, 1.0));
             }
         }
     }
@@ -328,30 +279,6 @@ const Game = struct {
 
                 player.d = @intFromFloat(player.f);
                 enemy.d = @intFromFloat(enemy.f);
-            }
-        }
-    }
-
-    fn playerCollisionX() void {
-        const pc = player.circle();
-
-        for (&enemies) |*enemy| {
-            const ec = enemy.circle();
-
-            if (ec.intersect(pc)) {
-                if (pc.contains(ec)) {
-                    enemy.spawn(SPACE);
-                }
-
-                if (ec.contains(pc)) state = .Over;
-
-                if (enemy.d < player.d) {
-                    player.f += 0.1;
-                    enemy.f -= 0.2;
-                } else {
-                    player.f -= 0.6;
-                    if (player.f < 0) state = .Over;
-                }
             }
         }
     }
