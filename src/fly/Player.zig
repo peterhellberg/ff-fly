@@ -30,6 +30,24 @@ pub fn update(p: *Player) void {
 
     if (Fly.SPACE.contains(target)) {
         p.pos = target;
+    } else {
+        if (!Fly.SPACE.contains(p.pos.add(
+            .{ .x = p.dir.x, .y = 0 },
+        ))) {
+            p.dir.x = -p.dir.x;
+        }
+
+        if (!Fly.SPACE.contains(p.pos.add(
+            .{ .x = 0, .y = p.dir.y },
+        ))) {
+            p.dir.y = -p.dir.y;
+        }
+
+        const new = p.pos.add(p.dir);
+
+        if (Fly.SPACE.contains(new)) {
+            p.pos = new;
+        }
     }
 }
 
