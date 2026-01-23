@@ -2,7 +2,7 @@ const ff = @import("ff");
 
 const Circle = @import("Circle.zig");
 
-const Fly = @import("../fly.zig");
+const Fly = @import("../main.zig");
 
 const Player = @This();
 

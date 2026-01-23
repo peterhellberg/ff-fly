@@ -2,7 +2,7 @@ const ff = @import("ff");
 
 const Camera = @import("Camera.zig");
 
-const Fly = @import("../fly.zig");
+const Fly = @import("../main.zig");
 
 const Star = @This();
 
