@@ -7,6 +7,7 @@ version = 0
 [cheats]
 toggle-prey-lines = 1 # Toggle lines pointing towards prey
 toggle-stage-name = 2 # Toggle stage name
+allow-state-flips = 3 # Allow flipping between states
 
 [files]
 font = { path = "eg_6x12.fff" }
