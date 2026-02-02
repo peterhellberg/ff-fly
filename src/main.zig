@@ -120,11 +120,9 @@ const Menu = struct {
     fn update(self: *Menu) void {
         if (@mod(frame, 12) == 0) self.blink = !self.blink;
 
-        if (!btn.e and old.e) {
-            state = .Init;
-        }
+        if (!btn.e and old.e) state = .Init;
 
-        if (!btn.s and old.s) state = .Died;
+        if (cheats.stateFlip and !btn.s and old.s) state = .Died;
     }
 
     fn render(_: *Menu) void {
@@ -223,8 +221,8 @@ const Game = struct {
         collisions();
 
         if (player.d < 3) state = .Died;
-        if (!btn.n and old.n) state = .Menu;
-        if (!btn.s and old.s) state = .Died;
+        if (cheats.stateFlip and !btn.n and old.n) state = .Menu;
+        if (cheats.stateFlip and !btn.s and old.s) state = .Died;
     }
 
     inline fn collisions() void {
