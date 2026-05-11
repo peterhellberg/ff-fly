@@ -190,7 +190,7 @@ const Menu = struct {
     }
 };
 
-var enemies: [NUM_ENEMIES]Enemy = [_]Enemy{.{}} ** NUM_ENEMIES;
+var enemies: [NUM_ENEMIES]Enemy = @splat(.{});
 
 const Init = struct {
     fn update(_: *Init) void {
@@ -361,7 +361,7 @@ const Over = struct {
     }
 };
 
-var stars: [NUM_STARS]Star = [_]Star{.{}} ** NUM_STARS;
+var stars: [NUM_STARS]Star = @splat(.{});
 
 fn renderStars() void {
     for (stars) |star| {
