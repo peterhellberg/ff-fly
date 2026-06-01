@@ -2,5 +2,4 @@
 
 killall -q firefly-emulator
 
-firefly_cli build --no-tip && \
-firefly_cli emulator -- --id "peter.fly"
+firefly_cli run --no-tip
