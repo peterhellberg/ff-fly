@@ -196,6 +196,9 @@ const Init = struct {
     fn update(_: *Init) void {
         player = .{};
 
+        cam.center(player.pos);
+        cam.clamp(SPACE);
+
         for (&enemies) |*e| {
             e.spawn(SPACE);
         }
