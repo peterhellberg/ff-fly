@@ -144,8 +144,14 @@ pub fn line(self: *const Enemy) void {
     }
 }
 
+fn rect(self: *const Enemy) ff.Rect {
+    return self.pos
+        .sub(.new(@divTrunc(self.d, 2), @divTrunc(self.d, 2)))
+        .rect(.new(self.d, self.d));
+}
+
 pub fn render(self: *const Enemy) void {
-    if (!Fly.cam.sees(self.pos)) return;
+    if (!Fly.cam.intersects(self.rect())) return;
 
     const ep = Fly.cam.screen(self.pos);
     const s = if (self.d > Fly.player.d) PRED else PREY;
