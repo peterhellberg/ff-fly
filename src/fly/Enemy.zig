@@ -145,19 +145,12 @@ pub fn line(self: *const Enemy) void {
 }
 
 pub fn render(self: *const Enemy) void {
+    if (!Fly.cam.sees(self.pos)) return;
+
     const ep = Fly.cam.screen(self.pos);
     const s = if (self.d > Fly.player.d) PRED else PREY;
 
-    if (dist(self.pos, Fly.player.pos) < ff.width) {
-        Circle.drawCentered(ep, self.d, s);
+    Circle.drawCentered(ep, self.d, s);
 
-        ff.draw.Point(ep, s.stroke_color);
-    }
-}
-
-fn dist(a: ff.Point, b: ff.Point) f32 {
-    const dx: f32 = @floatFromInt(b.x - a.x);
-    const dy: f32 = @floatFromInt(b.y - a.y);
-
-    return @sqrt(dx * dx + dy * dy);
+    ff.draw.Point(ep, s.stroke_color);
 }
