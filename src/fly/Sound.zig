@@ -53,7 +53,7 @@ pub fn tick(self: *Sound, delta_ms: u32) void {
 
     var i: usize = 0;
 
-    while (i < self.queue_len) : (i += 1) {
+    while (i < self.queue_len) {
         var sound = self.queue[i];
 
         const local_ms: i32 = @as(i32, @intCast(self.elapsed_ms)) -
@@ -62,7 +62,7 @@ pub fn tick(self: *Sound, delta_ms: u32) void {
         if (local_ms >= @as(i32, @intCast(sound.duration_ms))) {
             self.queue_len -= 1;
             if (i != self.queue_len) self.queue[i] = self.queue[self.queue_len];
-            i -= 1;
+            // Re-check slot i, it now holds the entry swapped in from the tail.
             continue;
         }
 
@@ -106,6 +106,8 @@ pub fn tick(self: *Sound, delta_ms: u32) void {
             sound.started = true;
             self.queue[i] = sound;
         }
+
+        i += 1;
     }
 }
 
