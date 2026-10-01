@@ -157,6 +157,4 @@ pub fn render(self: *const Enemy) void {
     const s = if (self.d > Fly.player.d) PRED else PREY;
 
     Circle.drawCentered(ep, self.d, s);
-
-    ff.draw.Point(ep, s.stroke_color);
 }
