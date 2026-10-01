@@ -1,7 +1,8 @@
 const ff = @import("ff");
 
 pub inline fn mod(comptime T: type, d: T) T {
-    return @mod(@as(T, @intCast(ff.getRandom())), d);
+    // Mask to 31 bits so the @intCast can't overflow for signed T.
+    return @mod(@as(T, @intCast(ff.getRandom() & 0x7FFF_FFFF)), d);
 }
 
 pub inline fn pos(space: ff.Rect) ff.Point {
