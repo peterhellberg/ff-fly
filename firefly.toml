@@ -8,6 +8,7 @@ version = 0
 toggle-prey-lines = 1 # Toggle lines pointing towards prey
 toggle-stage-name = 2 # Toggle stage name
 allow-state-flips = 3 # Allow flipping between states
+jump-to-game = 4 # Pin the state to Game/Menu, for profiling
 
 [files]
 font = { path = "eg_6x12.fff" }

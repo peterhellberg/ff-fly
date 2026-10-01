@@ -78,6 +78,13 @@ const State = enum {
             btn = ff.readButtons(me);
         }
 
+        // Cheat: start a fresh game once, so a headless run can be profiled.
+        // One-shot, so with the cheat unused this is inert.
+        if (cheats.jumpToGame) {
+            cheats.jumpToGame = false;
+            state = .Init;
+        }
+
         switch (s) {
             .Menu => menu.update(),
             .Init => init.update(),
