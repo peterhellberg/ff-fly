@@ -13,7 +13,7 @@ index: usize = 0,
 elapsed_ms: u32 = 0,
 
 pub fn init() Sound {
-    var s: Sound = undefined;
+    var s: Sound = .{};
     var i: usize = 0;
 
     while (i < s.sines.len) : (i += 1) {
