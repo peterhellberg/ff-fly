@@ -223,7 +223,7 @@ const Game = struct {
 
         collisions();
 
-        if (player.d < 3) state = .Died;
+        if (state == .Game and player.d < 3) state = .Died;
         if (cheats.stateFlip and !btn.n and old.n) state = .Menu;
         if (cheats.stateFlip and !btn.s and old.s) state = .Died;
     }
