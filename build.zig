@@ -3,6 +3,12 @@ const std = @import("std");
 pub fn build(b: *std.Build) !void {
     const id = "peter.fly";
 
+    const optimize = b.option(
+        std.builtin.OptimizeMode,
+        "optimize",
+        "Prioritize performance, safety, or binary size",
+    ) orelse .ReleaseSmall;
+
     const exe = b.addExecutable(.{
         .name = id,
         .root_module = b.createModule(.{
@@ -11,7 +17,7 @@ pub fn build(b: *std.Build) !void {
                 .cpu_arch = .wasm32,
                 .os_tag = .freestanding,
             }),
-            .optimize = .ReleaseSmall,
+            .optimize = optimize,
         }),
     });
 
