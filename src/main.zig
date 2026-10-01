@@ -289,7 +289,9 @@ const Game = struct {
                     state = .Died;
                 }
 
-                if (enemy.d < player.d) {
+                // <= so that an equal-sized enemy counts as prey here, matching
+                // the green fill in Enemy.render and the flee in Enemy.update.
+                if (enemy.d <= player.d) {
                     player.f = @min(player.f + 0.1, SIZE_PLAYER_MAX);
                     enemy.f -= 0.2;
                 } else {
